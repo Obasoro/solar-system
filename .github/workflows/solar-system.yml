@@ -11,7 +11,7 @@ on:
 jobs:
     unit-testing:
         name: Unit Test
-        runs-on:  ${{ matrix.operating_system }}
+        runs-on: ${{ matrix.nodejs_version}}
         strategy:
           matrix:
               nodejs_version: [18, 19, 20]
@@ -19,7 +19,7 @@ jobs:
              # exclude:
              #     - nodejs_version: 18
              #       operating_system: [macos-latest]
-        runs-on: ${{ matrix.nodejs_version}}
+       
         steps:
         - name: checkout Repositiory
           uses: actions/checkout@v4
