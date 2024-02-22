@@ -15,9 +15,9 @@ jobs:
           matrix:
               nodejs_version: [18, 19, 20]
               operating_system: [ubuntu-latest]
-              exclude:
-                  - nodejs_version: 18
-                    operating_system: [macos-latest]
+             # exclude:
+             #     - nodejs_version: 18
+             #       operating_system: [macos-latest]
         runs-on: ${{ matrix.nodejs_version}}
         steps:
         - name: checkout Repositiory
@@ -33,6 +33,9 @@ jobs:
           with:
             path: node-modules
             key: ${{ runner.os}}-node-modules-${{ hashFiles('package-lock,json') }}
+
+        - name: Custom Composite Action - Install and Cache NPM Packages
+          uses: ./.github/custom-actions/npm-action
         
         - name: Install Dependecies
           run: npm install
@@ -47,6 +50,7 @@ jobs:
           with:
             name: Mocha Test-Result
             path: test-result.xml
+
     code-coverage:
       name: Code Coverage
       runs-on: ubuntu-latest
@@ -93,6 +97,13 @@ jobs:
           username: ${{ vars.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
+      - name: GHCR login
+        uses: docker/login-action@v2.2.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Docker Image Test
         run: |
           docker images
@@ -109,9 +120,11 @@ jobs:
           echo Testing Image URL using wget
           wget -q -0 - 127.0.0.1:3000/live | grep live
 
-      - name: Docker Push Images
+      - name: Container Push Images
         uses: docker/build-push-action@v4
         with:
           context: .
           push: true
-          tags: ${{ vars.DOCKERHUB_USERNAME}}/solar-system${{ github.sha }}
+          tags: |
+            ${{ vars.DOCKERHUB_USERNAME}}/solar-system${{ github.sha }}
+            ghcr.io/${{ github.repository_owner }}/solar-system${{ github.sha }}
