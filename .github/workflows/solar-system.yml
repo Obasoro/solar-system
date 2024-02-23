@@ -68,10 +68,10 @@ jobs:
       services:
           mongo-db:
             image: siddharth67/mongo-db:non-prod
-            ports:
-              - 27170:27170
+            options:
+              -- name mongo
       env:
-        MONGO_URI: 'mongodbsrv://localhost:27017/superuser'
+        MONGO_URI: 'mongodbsrv://mongo:27017/superuser'
         MONGO_USERNAME: non-prod
         MONGO_PASSWORD: non-prod-password
       runs-on: ubuntu-latest
@@ -79,10 +79,10 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
       
-      - name: Setup NodeJS version - 18
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18
+      #- name: Setup NodeJS version - 18
+      #  uses: actions/setup-node@v3
+      #  with:
+      #    node-version: 18
       
       - name: Install Dependencies
         run: npm install
