@@ -17,7 +17,7 @@ jobs:
             ports:
               - 27170:27170
         env:
-          MONGO_URI: 'mongodb-srv://localhost:27017/superuser'
+          MONGO_URI: 'mongodbsrv://localhost:27017/superuser'
           MONGO_USERNAME: non-prod
           MONGO_PASSWORD: non-prod-password
         runs-on: ${{ matrix.nodejs_version}}
@@ -63,6 +63,17 @@ jobs:
 
     code-coverage:
       name: Code Coverage
+      container:
+        image: nodejs:18
+      services:
+          mongo-db:
+            image: siddharth67/mongo-db:non-prod
+            ports:
+              - 27170:27170
+      env:
+        MONGO_URI: 'mongodbsrv://localhost:27017/superuser'
+        MONGO_USERNAME: non-prod
+        MONGO_PASSWORD: non-prod-password
       runs-on: ubuntu-latest
       steps:
       - name: Checkout Repository
