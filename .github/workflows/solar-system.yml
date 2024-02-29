@@ -194,3 +194,20 @@ jobs:
       - name: Check files
         run: |
           cat Obasoro/solar-system/kubernetes/development/*.yaml
+
+      
+      - name: Create secrets for Mongo
+        run:
+          kubectl -n ${{ vars.NAMESPACE }} create secret generic mongo-db-cred \
+          --from-literal=MONGO_URL=${{ env.MONGO_URI }}
+          --from-literal=MONGO_USERNAME=${{ vars.MONGO_USERNAME }}
+          --from-literal=MONGO_PASSWORD=${{ secrets.MONGO_PASSWORD }}
+          --save-config \
+          --dry-run=clinet \
+          -o yaml | kubectl apply -f -
+
+
+      - name: Deploy to Dev Env
+        run: |
+          kubectl apply -f obasoro/kubernetes/developmedevelopment.yaml
+
