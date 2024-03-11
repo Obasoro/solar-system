@@ -153,6 +153,7 @@ jobs:
             ghcr.io/${{ github.repository_owner }}/solar-system${{ github.sha }}
 
     dev-deploy:
+      if: contains(github.ref, 'feature/')
       needs: docker
       outputs:
         API_INGRESS_URL: ${{ steps.set-ingress-host-address.outputs.APP_INGRESS_HOST}}
@@ -171,6 +172,7 @@ jobs:
           kubectl get nodes
 
     integration-test:
+      if: contains(github.ref, 'feature/')
       name: Dev Integration testing
       needs: dev-deploy
       runs-on: ubuntu-latest
@@ -178,6 +180,39 @@ jobs:
       - name: Test URL Output using CURL and JQ
         env:
           URL: ${{ needs.dev-deploy.outputs.API_INGRESS_URL }}
+        run: |
+          echo $URL
+          echo "-----------------------------"
+          curl https://$URL/live -s -k | jq -r .status | grep -i live
+
+    prod-deploy:
+      if: github.ref == 'refs/head/main'
+      needs: docker
+      outputs:
+        API_INGRESS_URL: ${{ steps.set-ingress-host-address.outputs.APP_INGRESS_HOST}}
+      runs-on: ubuntu-latest
+      steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        
+      - name: Install kubectl CLI
+        uses: azure/setup-kubectl@v3
+
+      - name: Fetch Kubernetes Cluster Details
+        run: |
+          kubectl version --short -0 yaml
+          echo --------------------------
+          kubectl get nodes
+
+    prod-integration-test:
+      name: prod Integration testing
+      if: github.ref == 'refs/head/main'
+      needs: prod-deploy
+      runs-on: ubuntu-latest
+      steps:
+      - name: Test URL Output using CURL and JQ
+        env:
+          URL: ${{ needs.prod-deploy.outputs.API_INGRESS_URL }}
         run: |
           echo $URL
           echo "-----------------------------"
