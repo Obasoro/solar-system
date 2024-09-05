@@ -165,11 +165,18 @@ jobs:
       - name: Install kubectl CLI
         uses: azure/setup-kubectl@v3
 
+      - name: Set up a Kubeconfig
+        uses: azure/setup-kubectl@v3
+        with:
+          method: kubeconfig
+          kubeconfig: ${{ secrets.kubeconfig }}
+
       - name: Fetch Kubernetes Cluster Details
         run: |
           kubectl version --short -0 yaml
           echo --------------------------
           kubectl get nodes
+      
 
     integration-test:
       if: contains(github.ref, 'feature/')
