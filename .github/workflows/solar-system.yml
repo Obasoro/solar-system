@@ -170,12 +170,32 @@ jobs:
         with:
           method: kubeconfig
           kubeconfig: ${{ secrets.kubeconfig }}
+      - name: Save Nginx Ingress Controller IP as as GITHUB Environment Variable
+        run: |
+         echo "INGRESS_IP=$(kubectl -n ingress-nginx get service ingress-nginx-controller -o jsonpath="{.status.loadBalancer.ingress[0].ip}")" >> $GITHUB_ENV
 
       - name: Fetch Kubernetes Cluster Details
         run: |
           kubectl version --short -0 yaml
           echo --------------------------
           kubectl get nodes
+      - name: Replace Token
+        uses: cschleiden/replace-tokens@v1
+        with:
+          tokenPrefix: '{'
+          tokenSuffix: '}'
+          files: '["kubernetes/development/*.yaml"]'
+        env:
+          NAMESPACE: ${{ vars.NAMESPACE }} 
+          REPLICA: ${{ vars.REPLICA }}
+          IMAGE: ${{ vars.DOCKERHUB_USERNAME}}/solar-system:${{ github.sha }}
+          INGRESS_IP: ${{ env.INGRESS_IP }}
+
+      - name: Check files
+        run: |
+          cat kubernetes/development/*.yaml
+
+
       
 
     integration-test:
@@ -204,6 +224,12 @@ jobs:
         
       - name: Install kubectl CLI
         uses: azure/setup-kubectl@v3
+
+      - name: Set up a Kubeconfig
+        uses: azure/setup-kubectl@v3
+        with:
+          method: kubeconfig
+          kubeconfig: ${{ secrets.kubeconfig }}
 
       - name: Fetch Kubernetes Cluster Details
         run: |
